@@ -10,9 +10,8 @@ The app allows users to:
 
 ## Features
 
-- Fully client-side: runs locally in any browser (no backend needed)
+- Runs locally in any browser (no backend needed)
 - Free, open-source libraries only
-- Styled UI
 - Works offline except for map tiles and elevation API calls
 - No registration or keys required
 
@@ -21,7 +20,7 @@ The app allows users to:
 - MapLibre GL JS (open-source map renderer)
 - Mapbox GL Draw (polygon drawing)
 - Turf.js (geometry tools)
-- Open-Elevation API (for elevation data)
+- Open-Elevation API (elevation data)
 - HTML, CSS, JavaScript
 
 ## How to Run
