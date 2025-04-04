@@ -1,6 +1,6 @@
 # Map elevation app
 
-This is a very simple proof-of-concept web app for planning combat unit placement using elevation data. Eventual goal is to help military personnel quickly understand terrain in unfamiliar areas, or react to known enemy positions.
+Simple proof-of-concept web app for getting elevation data in a certain map area.
 
 The app allows users to:
 - View a map (MapLibre + OpenStreetMap)
