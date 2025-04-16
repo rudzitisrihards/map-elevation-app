@@ -1,7 +1,7 @@
 // Initialize the map
 const map = new maplibregl.Map({
   container: "map",
-  style: "https://tiles.stadiamaps.com/styles/outdoors/style.json",
+  style: "https://api.maptiler.com/maps/topo-v2/style.json?key=b8kmc9h1kcZxK4qIf1o1",
   center: [25.07921854641682, 57.239711356360694],
   zoom: 15,
 });
@@ -105,8 +105,10 @@ deleteButton.addEventListener("click", () => {
 const elevationButton = document.getElementById("calculateElevation");
 
 elevationButton.addEventListener("click", async () => {
-  const loadingPanel = document.getElementById("elevation-loading");
-  if (loadingPanel) loadingPanel.classList.remove("hidden");
+  const elevationInfo = document.getElementById("elevation-info");
+  const elevationValues = document.getElementById("elevation-values");
+  elevationInfo.classList.remove("hidden");
+  elevationValues.innerHTML = `<p>Loading elevation...</p>`;
   const data = Draw.getAll();
   if (!data || data.features.length === 0) {
     alert("No polygons found.");
@@ -154,9 +156,7 @@ elevationButton.addEventListener("click", async () => {
 
     for (let i = 0; i < samplePoints.length; i += chunkSize) {
       const chunk = samplePoints.slice(i, i + chunkSize);
-      const locationsParam = chunk
-        .map((coord) => `${coord[1]},${coord[0]}`)
-        .join("|");
+      const locationsParam = chunk.map((coord) => `${coord[1]},${coord[0]}`).join("|");
 
       const url = `https://api.open-elevation.com/api/v1/lookup?locations=${locationsParam}`;
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -195,9 +195,7 @@ elevationButton.addEventListener("click", async () => {
       <p>Max: ${max} m</p>
     `;
     document.getElementById("elevation-info").classList.remove("hidden");
-    if (loadingPanel) loadingPanel.classList.add("hidden");
   } catch (err) {
-    if (loadingPanel) loadingPanel.classList.add("hidden");
     alert("Failed to fetch elevation data.");
     console.error(err);
   }
@@ -219,18 +217,8 @@ function updateElevationHeatmap(geojson) {
       type: "circle",
       source: "elevation-points",
       paint: {
-        "circle-radius": 6,
-        "circle-color": [
-          "interpolate",
-          ["linear"],
-          ["get", "elevation"],
-          0,
-          "#00bcd4",
-          50,
-          "#ffc107",
-          100,
-          "#f44336",
-        ],
+        "circle-radius": 18,
+        "circle-color": ["interpolate", ["linear"], ["get", "elevation"], 0, "#00bcd4", 50, "#ffc107", 100, "#f44336"],
         "circle-opacity": 0.6,
       },
     });
@@ -242,9 +230,9 @@ function updateElevationHeatmap(geojson) {
       source: "elevation-points",
       layout: {
         "text-field": ["to-string", ["get", "elevation"]],
-        "text-size": 10,
-        "text-offset": [0, 0.6],
-        "text-anchor": "top",
+        "text-size": 11,
+        "text-offset": [0, 0],
+        "text-anchor": "center",
       },
       paint: {
         "text-color": "#333",

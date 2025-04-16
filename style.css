@@ -85,3 +85,16 @@ body {
 .hidden {
   display: none;
 }
+
+.elevation-loading {
+  position: absolute;
+  top: 80px;
+  left: 10px;
+  background: white;
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  font-family: Roboto, sans-serif;
+  z-index: 9999;
+}
