@@ -1,9 +1,9 @@
 // Initialize the map
 const map = new maplibregl.Map({
   container: "map",
-  style: "https://api.maptiler.com/maps/topo-v2/style.json?key=b8kmc9h1kcZxK4qIf1o1",
-  center: [25.07921854641682, 57.239711356360694],
-  zoom: 15,
+  style: "https://api.maptiler.com/maps/satellite/style.json?key=b8kmc9h1kcZxK4qIf1o1",
+  center: [25.0791989891307, 57.25001855533888],
+  zoom: 14,
 });
 
 // Add navigation control
