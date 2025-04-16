@@ -3,6 +3,7 @@
 Simple proof-of-concept web app for getting elevation data in a certain map area.
 
 The app allows users to:
+
 - View a map (MapLibre + OpenStreetMap)
 - Draw polygon areas
 - Calculate and display elevation (average, min, max) for the area
@@ -26,8 +27,8 @@ The app allows users to:
 ## How to Run
 
 1. Clone or download the repository
-2. Open `index.html` in your browser (Brave, Chrome, etc.)
-3. Done — no build tools or server needed
+2. Open `index.html` with LiveServer extension from VScode (map needs an IP in browser to run)
+3. Done!
 
 ## License
 
