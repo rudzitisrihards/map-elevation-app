@@ -1,16 +1,16 @@
 # Map elevation app
 
-Simple proof-of-concept web app for getting elevation data in a certain map area and placing military unit icons on the map based on predefined rules.
+Simple proof-of-concept web app for getting elevation data in a certain map area and placing military unit icons on the map based on the available elevation data and predefined rules.
 
 The app allows users to:
 
 - View a map (MapLibre + OpenStreetMap)
 - Draw polygon areas
 - Calculate and display elevation for the area
-- Place military unit icons on the map based on elevation and placement rules
+- Place military unit icons on the map based on elevation and unit placement rules
 - Clear and redraw as needed
 
-Once the pin button is pressed, the app fetches elevation points, and applies these placement rules:
+Once the pin button is pressed, these unit placement rules are applied:
 
 - HQ is the single highest point in the polygon
 - Artillery is the next highest point that isn’t the HQ
@@ -36,7 +36,7 @@ Once the pin button is pressed, the app fetches elevation points, and applies th
 ## How to Run
 
 1. Clone or download the repository
-2. Open `index.html` with LiveServer extension from VScode (map needs an IP in browser to run)
+2. Open `index.html` with LiveServer extension from VScode (map requires a local IP in browser to run properly)
 3. Done!
 
 ## License
