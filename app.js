@@ -1,7 +1,7 @@
 // Initialize the map
 const map = new maplibregl.Map({
   container: "map",
-  style: "https://api.maptiler.com/maps/satellite/style.json?key=b8kmc9h1kcZxK4qIf1o1",
+  style: "https://api.maptiler.com/maps/outdoor-v2/style.json?key=b8kmc9h1kcZxK4qIf1o1",
   center: [25.0791989891307, 57.25001855533888],
   zoom: 14,
 });
@@ -93,31 +93,57 @@ deployButton.addEventListener("click", () => {
   const elevationData = elevationSource._data.features;
   const sorted = [...elevationData].sort((a, b) => b.properties.elevation - a.properties.elevation);
 
-  const hq = sorted[0];
-  const artillery = sorted.find((f) => f !== hq);
-  const infantry = sorted[Math.floor(sorted.length / 2)];
-  const armor = sorted[Math.floor(sorted.length * 0.75)];
+  const placedUnits = [];
+  const minDistance = 0.1; // 0.1 km = 100 meters
 
-  // Find point farthest from HQ
+  // Place HQ at the highest point
+  const hq = sorted[0];
+  placedUnits.push({ coordinates: hq.geometry.coordinates, unitType: "hq" });
+
+  // Helper to check distance
+  function isFarEnough(candidate) {
+    return placedUnits.every((existing) => {
+      const d = turf.distance(turf.point(existing.coordinates), turf.point(candidate.geometry.coordinates));
+      return d >= minDistance;
+    });
+  }
+
+  // Find Artillery (next highest, far enough from HQ)
+  const artillery = sorted.find((f) => f !== hq && isFarEnough(f));
+  if (artillery) placedUnits.push({ coordinates: artillery.geometry.coordinates, unitType: "artillery" });
+
+  // Find Infantry (middle elevation, far enough)
+  const midIndex = Math.floor(sorted.length / 2);
+  for (let i = midIndex; i < sorted.length; i++) {
+    if (isFarEnough(sorted[i])) {
+      placedUnits.push({ coordinates: sorted[i].geometry.coordinates, unitType: "infantry" });
+      break;
+    }
+  }
+
+  // Find Armor (lower elevation, far enough)
+  const lowerIndex = Math.floor(sorted.length * 0.75);
+  for (let i = lowerIndex; i < sorted.length; i++) {
+    if (isFarEnough(sorted[i])) {
+      placedUnits.push({ coordinates: sorted[i].geometry.coordinates, unitType: "armor" });
+      break;
+    }
+  }
+
+  // Find Recon (farthest from HQ, far enough)
   let recon = null;
   let maxDist = -1;
   for (const pt of sorted) {
     const d = turf.distance(turf.point(hq.geometry.coordinates), turf.point(pt.geometry.coordinates));
-    if (d > maxDist) {
+    if (d > maxDist && isFarEnough(pt)) {
       maxDist = d;
       recon = pt;
     }
   }
+  if (recon) placedUnits.push({ coordinates: recon.geometry.coordinates, unitType: "recon" });
 
-  const features = [
-    { coordinates: hq.geometry.coordinates, unitType: "hq" },
-    { coordinates: artillery.geometry.coordinates, unitType: "artillery" },
-    { coordinates: infantry.geometry.coordinates, unitType: "infantry" },
-    { coordinates: armor.geometry.coordinates, unitType: "armor" },
-    { coordinates: recon.geometry.coordinates, unitType: "recon" },
-  ];
-
-  unitFeatures = features.map(({ coordinates, unitType }) => ({
+  // Create features
+  unitFeatures = placedUnits.map(({ coordinates, unitType }) => ({
     type: "Feature",
     geometry: { type: "Point", coordinates },
     properties: { icon: unitType },
