@@ -54,10 +54,101 @@ const Draw = new MapboxDraw({
 
 map.addControl(Draw);
 
+// Load unit icons
+const unitIcons = [
+  { id: "hq", path: "icons/hq.png" },
+  { id: "infantry", path: "icons/infantry.png" },
+  { id: "armor", path: "icons/armor.png" },
+  { id: "recon", path: "icons/recon.png" },
+  { id: "artillery", path: "icons/artillery.png" },
+];
+
+unitIcons.forEach(({ id, path }) => {
+  map.loadImage(path, (error, image) => {
+    if (error) {
+      console.error(`Failed to load icon ${id}:`, error);
+      return;
+    }
+    if (!map.hasImage(id)) {
+      map.addImage(id, image);
+    }
+  });
+});
+
 // State and button references
 let isDrawing = false;
 const drawButton = document.getElementById("toggleDraw");
 const deleteButton = document.getElementById("deleteDraw");
+const deployButton = document.getElementById("deployUnits");
+
+// Deploy units based on elevation data
+let unitFeatures = [];
+deployButton.addEventListener("click", () => {
+  const elevationSource = map.getSource("elevation-points");
+  if (!elevationSource) {
+    alert("No elevation data found. Please calculate elevation first.");
+    return;
+  }
+
+  const elevationData = elevationSource._data.features;
+  const sorted = [...elevationData].sort((a, b) => b.properties.elevation - a.properties.elevation);
+
+  const hq = sorted[0];
+  const artillery = sorted.find((f) => f !== hq);
+  const infantry = sorted[Math.floor(sorted.length / 2)];
+  const armor = sorted[Math.floor(sorted.length * 0.75)];
+
+  // Find point farthest from HQ
+  let recon = null;
+  let maxDist = -1;
+  for (const pt of sorted) {
+    const d = turf.distance(turf.point(hq.geometry.coordinates), turf.point(pt.geometry.coordinates));
+    if (d > maxDist) {
+      maxDist = d;
+      recon = pt;
+    }
+  }
+
+  const features = [
+    { coordinates: hq.geometry.coordinates, unitType: "hq" },
+    { coordinates: artillery.geometry.coordinates, unitType: "artillery" },
+    { coordinates: infantry.geometry.coordinates, unitType: "infantry" },
+    { coordinates: armor.geometry.coordinates, unitType: "armor" },
+    { coordinates: recon.geometry.coordinates, unitType: "recon" },
+  ];
+
+  unitFeatures = features.map(({ coordinates, unitType }) => ({
+    type: "Feature",
+    geometry: { type: "Point", coordinates },
+    properties: { icon: unitType },
+  }));
+
+  if (map.getLayer("unit-markers")) {
+    map.removeLayer("unit-markers");
+  }
+  if (map.getSource("units")) {
+    map.removeSource("units");
+  }
+
+  map.addSource("units", {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: unitFeatures,
+    },
+  });
+
+  map.addLayer({
+    id: "unit-markers",
+    type: "symbol",
+    source: "units",
+    layout: {
+      "icon-image": ["get", "icon"],
+      "icon-size": 0.3,
+      "icon-allow-overlap": true,
+    },
+  });
+});
 
 // Toggle draw mode
 drawButton.addEventListener("click", () => {
@@ -83,13 +174,7 @@ map.on("draw.create", () => {
 // Delete all drawings
 deleteButton.addEventListener("click", () => {
   Draw.deleteAll();
-  drawButton.classList.remove("active");
-  isDrawing = false;
 
-  // Hide panel
-  document.getElementById("elevation-info").classList.add("hidden");
-
-  // Remove heatmap and labels
   if (map.getLayer("elevation-heat")) {
     map.removeLayer("elevation-heat");
   }
@@ -98,6 +183,34 @@ deleteButton.addEventListener("click", () => {
   }
   if (map.getSource("elevation-points")) {
     map.removeSource("elevation-points");
+  }
+  if (map.getLayer("unit-markers")) {
+    map.removeLayer("unit-markers");
+  }
+  if (map.getSource("units")) {
+    map.getSource("units").setData({
+      type: "FeatureCollection",
+      features: unitFeatures,
+    });
+  } else {
+    map.addSource("units", {
+      type: "geojson",
+      data: {
+        type: "FeatureCollection",
+        features: unitFeatures,
+      },
+    });
+
+    map.addLayer({
+      id: "unit-markers",
+      type: "symbol",
+      source: "units",
+      layout: {
+        "icon-image": ["get", "icon"],
+        "icon-size": 0.3,
+        "icon-allow-overlap": true,
+      },
+    });
   }
 });
 
